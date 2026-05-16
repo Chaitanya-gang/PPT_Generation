@@ -64,3 +64,5 @@ __MACOSX/
 # macOS
 .DS_Store
 _MACOSX/
+
+data/models_cache/
