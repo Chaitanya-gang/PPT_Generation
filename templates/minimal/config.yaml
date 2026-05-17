@@ -1,0 +1,12 @@
+theme:
+  name: "Minimal"
+  bg: [5, 46, 22]
+  card_bg: [20, 83, 45]
+  title: [255, 255, 255]
+  text: [220, 252, 231]
+  accent1: [74, 222, 128]
+  accent2: [250, 204, 21]
+  accent3: [96, 165, 250]
+  accent4: [251, 146, 60]
+  highlight: [253, 224, 71]
+  muted: [134, 239, 172]

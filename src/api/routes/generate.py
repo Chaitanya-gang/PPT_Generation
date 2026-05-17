@@ -4,7 +4,7 @@ newd2p - Generate Endpoint
 
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -25,6 +25,7 @@ from src.output.json_builder import build_handover_json
 from src.output.markdown_builder import build_markdown_from_narrative
 from src.parsers.parser_factory import parse_document
 from src.ppt.builder import PPTBuilder
+from src.rag.pipeline import RAGPipeline
 from src.simple_generation import build_simple_narrative, build_simple_summary
 from src.utils.logger import get_logger
 
@@ -60,7 +61,7 @@ class GenerateFromOutlineRequest(BaseModel):
     include_speaker_notes: bool = True
     export_formats: Optional[List[str]] = None
     narrative_json: dict
-    doc_summary: str
+    doc_summary: Any
 
 
 class ExplainSlideRequest(BaseModel):
@@ -257,18 +258,14 @@ def _generate_with_ollama(doc, style: str, slide_count: int) -> tuple[str, str]:
     if hasattr(llm, "is_available") and not llm.is_available():
         raise RuntimeError("Ollama is not available")
 
-    context = doc.cleaned_text[:12000]
-    summary_raw = llm.generate(
-        SUMMARY_PROMPT.format(content=context[:3000]),
-        system_prompt=SYSTEM_PROMPT,
-    )
-    narrative_raw = llm.generate(
-        NARRATIVE_PROMPT.format(
-            context=context,
-            style=style,
-            slide_count=slide_count,
-        ),
-        system_prompt=SYSTEM_PROMPT,
+    rag = RAGPipeline()
+    result = rag.process_document(doc)
+    
+    summary_raw = result["summary"]
+    narrative_raw = rag.generate_narrative(
+        context=result["context"],
+        style=style,
+        slide_count=slide_count,
     )
 
     fallback_summary = build_simple_summary(doc)

@@ -1,0 +1,50 @@
+prompt: |
+  Based on the following document content, create a presentation
+  with {slide_count} slides in "{style}" style.
+
+  Document Content:
+  {context}
+
+  Create a JSON response with this exact structure:
+  {{
+      "title": "Presentation Title",
+      "subtitle": "A compelling subtitle",
+      "slides": [
+          {{
+              "slide_number": 1,
+              "slide_type": "title",
+              "title": "Engaging Title",
+              "bullet_points": [],
+              "speaker_notes": "What the presenter should say (2-3 paragraphs, natural speech)",
+              "visual_cue": "Description of what visual/image should be shown",
+              "duration_seconds": 30
+          }},
+          {{
+              "slide_number": 2,
+              "slide_type": "content",
+              "title": "Slide Title",
+              "bullet_points": ["Point 1", "Point 2", "Point 3"],
+              "speaker_notes": "Natural speech for this slide...",
+              "visual_cue": "Description of visual...",
+              "duration_seconds": 45
+          }}
+      ]
+  }}
+
+  Rules:
+  - slide_type can be: title, content, chart, transition, closing
+  - Maximum 4 bullet points per slide
+  - Each bullet must be a SHORT PHRASE, not a sentence (maximum 6 words)
+  - Avoid generic phrases like "Key insights" or "Important points"
+  - Make slide titles professional and concise, not conversational
+  - Visual cues should describe what image, chart, diagram or infographic to show
+  - First slide is always "title" type
+  - Last slide is always "closing" type
+  - Include a "transition" slide between major topic changes
+  - Make it engaging and story-driven
+  - If the document is a software/AI project report, prefer this academic order:
+    Problem Statement, Objective, System Architecture, Workflow / Methodology,
+    Tech Stack, AI Pipeline, Code Modules, Results / Output, Limitations, Future Scope
+  - For project presentations, keep wording viva-friendly and clear for professors
+
+  Respond ONLY with valid JSON, no other text.

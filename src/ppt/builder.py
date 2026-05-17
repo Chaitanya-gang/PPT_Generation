@@ -1,4 +1,4 @@
-﻿"""
+"""
 newd2p - Creative PPT Builder with Charts & Images
 """
 
@@ -21,68 +21,7 @@ logger = get_logger("ppt_builder")
 settings = get_settings()
 
 
-PALETTES = {
-    "vibrant": {
-        "bg": RGBColor(15, 23, 42),
-        "card_bg": RGBColor(30, 41, 59),
-        "title": RGBColor(255, 255, 255),
-        "text": RGBColor(226, 232, 240),
-        "accent1": RGBColor(99, 102, 241),
-        "accent2": RGBColor(244, 63, 94),
-        "accent3": RGBColor(34, 211, 238),
-        "accent4": RGBColor(163, 230, 53),
-        "highlight": RGBColor(251, 191, 36),
-        "muted": RGBColor(148, 163, 184),
-    },
-    "ocean": {
-        "bg": RGBColor(2, 6, 23),
-        "card_bg": RGBColor(15, 23, 42),
-        "title": RGBColor(255, 255, 255),
-        "text": RGBColor(203, 213, 225),
-        "accent1": RGBColor(56, 189, 248),
-        "accent2": RGBColor(129, 140, 248),
-        "accent3": RGBColor(52, 211, 153),
-        "accent4": RGBColor(251, 146, 60),
-        "highlight": RGBColor(250, 204, 21),
-        "muted": RGBColor(100, 116, 139),
-    },
-    "sunset": {
-        "bg": RGBColor(24, 24, 27),
-        "card_bg": RGBColor(39, 39, 42),
-        "title": RGBColor(255, 255, 255),
-        "text": RGBColor(228, 228, 231),
-        "accent1": RGBColor(249, 115, 22),
-        "accent2": RGBColor(236, 72, 153),
-        "accent3": RGBColor(168, 85, 247),
-        "accent4": RGBColor(34, 197, 94),
-        "highlight": RGBColor(234, 179, 8),
-        "muted": RGBColor(113, 113, 122),
-    },
-    "forest": {
-        "bg": RGBColor(5, 46, 22),
-        "card_bg": RGBColor(20, 83, 45),
-        "title": RGBColor(255, 255, 255),
-        "text": RGBColor(220, 252, 231),
-        "accent1": RGBColor(74, 222, 128),
-        "accent2": RGBColor(250, 204, 21),
-        "accent3": RGBColor(96, 165, 250),
-        "accent4": RGBColor(251, 146, 60),
-        "highlight": RGBColor(253, 224, 71),
-        "muted": RGBColor(134, 239, 172),
-    },
-    "royal": {
-        "bg": RGBColor(13, 2, 33),
-        "card_bg": RGBColor(30, 10, 60),
-        "title": RGBColor(255, 255, 255),
-        "text": RGBColor(221, 214, 254),
-        "accent1": RGBColor(167, 139, 250),
-        "accent2": RGBColor(244, 114, 182),
-        "accent3": RGBColor(45, 212, 191),
-        "accent4": RGBColor(251, 191, 36),
-        "highlight": RGBColor(232, 121, 249),
-        "muted": RGBColor(139, 92, 246),
-    },
-}
+from src.ppt.theme_manager import get_theme
 
 TOPIC_ICONS = {
     "introduction": "🌟",
@@ -134,9 +73,21 @@ class PPTBuilder:
         self.prs = Presentation()
         self.prs.slide_width = Inches(13.333)
         self.prs.slide_height = Inches(7.5)
-        if theme_name not in PALETTES:
-            theme_name = "vibrant"
-        self.colors = PALETTES[theme_name]
+        self.colors = get_theme(theme_name)
+        if not self.colors:
+            # Emergency fallback if no themes loaded
+            self.colors = {
+                "bg": RGBColor(15, 23, 42),
+                "card_bg": RGBColor(30, 41, 59),
+                "title": RGBColor(255, 255, 255),
+                "text": RGBColor(226, 232, 240),
+                "accent1": RGBColor(99, 102, 241),
+                "accent2": RGBColor(244, 63, 94),
+                "accent3": RGBColor(34, 211, 238),
+                "accent4": RGBColor(163, 230, 53),
+                "highlight": RGBColor(251, 191, 36),
+                "muted": RGBColor(148, 163, 184),
+            }
         self.theme_name = theme_name
         self.total_slides = 0
         self.chart_paths = []

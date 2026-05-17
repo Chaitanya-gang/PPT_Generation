@@ -75,16 +75,27 @@ class RAGPipeline:
         """Build full context from chunks"""
 
         max_chunks = settings.max_chunks_for_context
-        selected = chunks[:max_chunks]
+        
+        if len(chunks) <= max_chunks:
+            selected = chunks
+        else:
+            # Uniformly sample chunks across the document to get a holistic view
+            # Ensure we always include the very beginning (intro) and very end (conclusion)
+            step = (len(chunks) - 2) / (max_chunks - 2)
+            indices = [0] + [int(1 + i * step) for i in range(max_chunks - 2)] + [len(chunks) - 1]
+            # remove duplicates if any
+            indices = sorted(list(set(indices)))
+            selected = [chunks[i] for i in indices]
+
         context = "\n\n---\n\n".join([chunk.text for chunk in selected])
-        logger.info(f"Context built: {len(context)} chars from {len(selected)} chunks")
+        logger.info(f"Context built: {len(context)} chars from {len(selected)} chunks (total {len(chunks)})")
         return context
 
     def _get_summary(self, context: str) -> str:
         """Get document summary from LLM"""
 
         try:
-            prompt = SUMMARY_PROMPT.format(content=context[:3000])
+            prompt = SUMMARY_PROMPT.format(content=context[:6000])
             summary = self.llm.generate(prompt, system_prompt=SYSTEM_PROMPT)
             return summary
         except Exception as e:

@@ -1,0 +1,20 @@
+prompt: |
+  Summarize the following document content in a structured way:
+
+  {content}
+
+  Provide:
+  1. Main theme (one sentence)
+  2. Key topics (list of 4-6 topics)
+  3. Important data points (any numbers, statistics, facts)
+  4. Main conclusion
+
+  Respond in JSON format:
+  {{
+      "main_theme": "...",
+      "key_topics": ["topic1", "topic2"],
+      "data_points": ["stat1", "stat2"],
+      "conclusion": "..."
+  }}
+
+  Respond ONLY with valid JSON.

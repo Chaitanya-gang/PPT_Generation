@@ -3,11 +3,21 @@ newd2p - Prompt Templates for LLM
 """
 
 
+import yaml
+from pathlib import Path
+from src.config import PROJECT_ROOT
+from src.utils.logger import get_logger
+
+logger = get_logger("prompt_templates")
+
+# ==========================================
+# Fallback Hardcoded Prompts
+# ==========================================
+
 SYSTEM_PROMPT = """You are a world-class presentation designer and storyteller.
 You create engaging, TED-talk style narratives from documents.
 Your presentations are clear, compelling, and memorable.
 You always respond in valid JSON format when asked."""
-
 
 NARRATIVE_PROMPT = """Based on the following document content, create a presentation
 with {slide_count} slides in "{style}" style.
@@ -59,7 +69,6 @@ Rules:
 
 Respond ONLY with valid JSON, no other text."""
 
-
 SUMMARY_PROMPT = """Summarize the following document content in a structured way:
 
 {content}
@@ -80,7 +89,6 @@ Respond in JSON format:
 
 Respond ONLY with valid JSON."""
 
-
 EXPLAIN_SLIDE_PROMPT = """You are an expert teacher explaining presentation slides
 to students in a clear, friendly way.
 
@@ -95,7 +103,6 @@ Slide context:
 
 Write your explanation as plain text, not JSON. Do NOT restate the bullet points
 verbatim; instead, explain them in natural language."""
-
 
 SLIDE_ACTION_PROMPT = """You are improving a single presentation slide.
 
@@ -116,7 +123,6 @@ Rules:
 - Optionally include: section_type, layout, subtitle, metric, description.
 """
 
-
 SLIDE_CHAT_PROMPT = """You are answering questions about a presentation slide.
 
 Presentation title: {presentation_title}
@@ -129,7 +135,6 @@ User question:
 Answer in plain text. Be clear, helpful, and grounded in the slide content.
 If the question asks to simplify, explain in simpler language.
 If the slide is incomplete, mention that you are inferring from the available slide content."""
-
 
 CHART_ANALYSIS_PROMPT = """Analyze the following text for numerical data that can be
 visualized as charts:
@@ -153,7 +158,6 @@ For each potential chart, provide:
 If no numerical data found, return: {{"charts": []}}
 
 Respond ONLY with valid JSON."""
-
 
 DIAGRAM_ANALYSIS_PROMPT = """Analyze the following text for processes, workflows,
 or step-by-step sequences that can be visualized as simple diagrams.
@@ -187,3 +191,32 @@ Rules:
 If no clear processes or flows are found, return: {{"diagrams": []}}
 
 Respond ONLY with valid JSON."""
+
+# ==========================================
+# Dynamic YAML Loading
+# ==========================================
+
+def load_prompts():
+    global SYSTEM_PROMPT, NARRATIVE_PROMPT, SUMMARY_PROMPT
+    global EXPLAIN_SLIDE_PROMPT, SLIDE_ACTION_PROMPT, SLIDE_CHAT_PROMPT
+    global CHART_ANALYSIS_PROMPT, DIAGRAM_ANALYSIS_PROMPT
+
+    prompts_dir = PROJECT_ROOT / "prompts"
+    if not prompts_dir.exists():
+        logger.warning(f"Prompts directory not found at {prompts_dir}")
+        return
+
+    for file in prompts_dir.glob("*.yaml"):
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                content = yaml.safe_load(f)
+                if content and "prompt" in content:
+                    var_name = file.stem.upper()
+                    if var_name in globals():
+                        globals()[var_name] = content["prompt"]
+        except Exception as e:
+            logger.error(f"Failed to load prompt from {file.name}: {e}")
+
+# Load prompts on module initialization
+load_prompts()
+

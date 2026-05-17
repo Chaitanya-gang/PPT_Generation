@@ -1,0 +1,18 @@
+prompt: |
+  You are improving a single presentation slide.
+
+  Slide JSON:
+  {slide_json}
+
+  Requested action: {action}
+
+  Rules:
+  - Return ONLY valid JSON for one slide object.
+  - Preserve slide_number and slide_type.
+  - Keep bullet_points to at most 4 bullets.
+  - Keep titles concise and presentation-ready.
+  - If action is "improve_bullets", preserve the title and improve only the bullet_points, speaker_notes, visual_cue, and layout if needed.
+  - If action is "simplify", make the slide easier to understand and shorter.
+  - If action is "regenerate", rewrite the whole slide but keep it aligned with the original topic.
+  - Always include: slide_number, slide_type, title, bullet_points, speaker_notes, visual_cue, duration_seconds.
+  - Optionally include: section_type, layout, subtitle, metric, description.

@@ -1,0 +1,33 @@
+prompt: |
+  Analyze the following text for processes, workflows,
+  or step-by-step sequences that can be visualized as simple diagrams.
+
+  Focus on flows like:
+  - pipelines (e.g., "Data Collection → Preprocessing → Training → Evaluation")
+  - business processes
+  - system / architecture flows at a high level
+
+  From the content, extract at most 3 of the most important flows and respond in
+  the following JSON format:
+  {{
+    "diagrams": [
+      {{
+        "diagram_type": "workflow",
+        "title": "Workflow Title",
+        "steps": [
+          "Step 1",
+          "Step 2",
+          "Step 3"
+        ]
+      }}
+    ]
+  }}
+
+  Rules:
+  - Steps must be in the correct order of the process.
+  - Each diagram should have at least 2 and at most 8 steps.
+  - Use concise step names suitable for node labels.
+
+  If no clear processes or flows are found, return: {{"diagrams": []}}
+
+  Respond ONLY with valid JSON.

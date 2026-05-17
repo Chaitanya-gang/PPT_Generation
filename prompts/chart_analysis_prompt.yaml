@@ -1,0 +1,23 @@
+prompt: |
+  Analyze the following text for numerical data that can be
+  visualized as charts:
+
+  {content}
+
+  For each potential chart, provide:
+  {{
+      "charts": [
+          {{
+              "chart_type": "bar",
+              "title": "Chart Title",
+              "labels": ["Label1", "Label2"],
+              "values": [10, 20],
+              "x_label": "X Axis",
+              "y_label": "Y Axis"
+          }}
+      ]
+  }}
+
+  If no numerical data found, return: {{"charts": []}}
+
+  Respond ONLY with valid JSON.

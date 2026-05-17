@@ -7,53 +7,55 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 
 
-THEMES = {
-    "professional": {
-        "bg_color": RGBColor(255, 255, 255),
-        "title_color": RGBColor(27, 54, 93),
-        "text_color": RGBColor(51, 51, 51),
-        "accent_color": RGBColor(74, 144, 217),
-        "title_font": "Calibri",
-        "body_font": "Calibri",
-        "title_size": Pt(36),
-        "body_size": Pt(18),
-        "bullet_size": Pt(16),
-    },
-    "creative": {
-        "bg_color": RGBColor(255, 255, 255),
-        "title_color": RGBColor(108, 52, 131),
-        "text_color": RGBColor(44, 62, 80),
-        "accent_color": RGBColor(231, 76, 60),
-        "title_font": "Georgia",
-        "body_font": "Arial",
-        "title_size": Pt(40),
-        "body_size": Pt(18),
-        "bullet_size": Pt(16),
-    },
-    "dark": {
-        "bg_color": RGBColor(26, 26, 46),
-        "title_color": RGBColor(232, 232, 232),
-        "text_color": RGBColor(200, 200, 200),
-        "accent_color": RGBColor(187, 134, 252),
-        "title_font": "Arial",
-        "body_font": "Arial",
-        "title_size": Pt(36),
-        "body_size": Pt(18),
-        "bullet_size": Pt(16),
-    },
-    "minimal": {
-        "bg_color": RGBColor(255, 255, 255),
-        "title_color": RGBColor(44, 62, 80),
-        "text_color": RGBColor(44, 62, 80),
-        "accent_color": RGBColor(26, 188, 156),
-        "title_font": "Helvetica",
-        "body_font": "Helvetica",
-        "title_size": Pt(32),
-        "body_size": Pt(16),
-        "bullet_size": Pt(14),
-    },
-}
+import os
+import yaml
+from pathlib import Path
+from pptx.dml.color import RGBColor
+from src.config import PROJECT_ROOT
+from src.utils.logger import get_logger
 
+logger = get_logger("theme_manager")
 
-def get_theme(theme_name: str = "professional") -> dict:
-    return THEMES.get(theme_name, THEMES["professional"])
+THEMES = {}
+
+def load_themes():
+    global THEMES
+    templates_dir = PROJECT_ROOT / "templates"
+    
+    if not templates_dir.exists():
+        logger.warning(f"Templates directory not found at {templates_dir}")
+        return
+        
+    for theme_dir in templates_dir.iterdir():
+        if theme_dir.is_dir():
+            config_path = theme_dir / "config.yaml"
+            if config_path.exists():
+                try:
+                    with open(config_path, "r", encoding="utf-8") as f:
+                        data = yaml.safe_load(f)
+                        if data and "theme" in data:
+                            theme_data = data["theme"]
+                            theme_name = theme_dir.name.lower()
+                            
+                            # Convert rgb arrays to RGBColor
+                            palette = {}
+                            for key, val in theme_data.items():
+                                if key != "name" and isinstance(val, list) and len(val) == 3:
+                                    palette[key] = RGBColor(val[0], val[1], val[2])
+                            
+                            THEMES[theme_name] = palette
+                except Exception as e:
+                    logger.error(f"Failed to load theme {theme_dir.name}: {e}")
+
+# Load themes initially
+load_themes()
+
+def get_theme(theme_name: str) -> dict:
+    # If not found, fallback to 'ocean' or whatever is available
+    if not THEMES:
+        return {}
+    if theme_name in THEMES:
+        return THEMES[theme_name]
+    # Fallback to first available theme
+    return next(iter(THEMES.values()))
+

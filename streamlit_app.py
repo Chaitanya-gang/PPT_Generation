@@ -235,22 +235,48 @@ def render_outline_preview(outline_data: Dict) -> None:
         st.warning("Could not parse slide preview from the outline response.")
         return
 
+    presentation_title = narrative.get("title", "Presentation")
     slides = narrative.get("slides", [])
-    st.markdown('<div class="panel-card"><h4 style="margin-top:0;">Slide Preview</h4>', unsafe_allow_html=True)
-    preview_columns = st.columns(2)
-    for index, slide in enumerate(slides[:8]):
-        with preview_columns[index % 2]:
-            bullets = slide.get("bullet_points", [])
-            bullet_preview = " | ".join(bullets[:3]) if bullets else "Title / opening slide"
-            st.markdown(
-                f"""
-                <div class="preview-card">
-                    <h4>{slide.get("slide_number", index + 1)}. {slide.get("title", "Untitled")}</h4>
-                    <p>{bullet_preview}</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+    
+    st.markdown('<div class="panel-card"><h4 style="margin-top:0;">Slide Editor</h4><p style="font-size:0.9em;color:#666;">Expand a slide to edit or improve it using Ollama before generating.</p>', unsafe_allow_html=True)
+    
+    for index, slide in enumerate(slides):
+        bullets = slide.get("bullet_points", [])
+        bullet_preview = " | ".join(bullets[:3]) if bullets else "Title / opening slide"
+        
+        with st.expander(f"{slide.get('slide_number', index + 1)}. {slide.get('title', 'Untitled')}"):
+            st.markdown(f"**Bullet Points:**\n" + "\n".join([f"- {b}" for b in bullets]))
+            st.markdown(f"**Speaker Notes:** {slide.get('speaker_notes', 'None')}")
+            st.markdown(f"**Visual:** {slide.get('visual_cue', 'None')}")
+            
+            st.markdown("<hr style='margin: 0.5rem 0;'/>", unsafe_allow_html=True)
+            cols = st.columns(3)
+            
+            if cols[0].button("🪄 Improve", key=f"imp_{index}", use_container_width=True):
+                with st.spinner("Improving..."):
+                    from frontend.api_client import run_slide_action
+                    res = run_slide_action("improve_bullets", slide, presentation_title)
+                    narrative["slides"][index] = res["slide"]
+                    outline_data["narrative"] = json.dumps(narrative)
+                    st.session_state["outline_data"] = outline_data
+                    st.rerun()
+            if cols[1].button("✂️ Simplify", key=f"sim_{index}", use_container_width=True):
+                with st.spinner("Simplifying..."):
+                    from frontend.api_client import run_slide_action
+                    res = run_slide_action("simplify", slide, presentation_title)
+                    narrative["slides"][index] = res["slide"]
+                    outline_data["narrative"] = json.dumps(narrative)
+                    st.session_state["outline_data"] = outline_data
+                    st.rerun()
+            if cols[2].button("🔄 Regenerate", key=f"reg_{index}", use_container_width=True):
+                with st.spinner("Regenerating..."):
+                    from frontend.api_client import run_slide_action
+                    res = run_slide_action("regenerate", slide, presentation_title)
+                    narrative["slides"][index] = res["slide"]
+                    outline_data["narrative"] = json.dumps(narrative)
+                    st.session_state["outline_data"] = outline_data
+                    st.rerun()
+                    
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -356,8 +382,8 @@ def main() -> None:
                 if st.button("Generate outline preview", use_container_width=True):
                     try:
                         st.session_state["current_stage"] = 2
-                        # Preview uses the lightweight path for faster feedback.
-                        outline_data = generate_outline(file_id, style, slide_count, False)
+                        # Preview uses the selected AI setting.
+                        outline_data = generate_outline(file_id, style, slide_count, use_ollama)
                         st.session_state["outline_data"] = outline_data
                         st.success("Slide preview generated.")
                     except requests.RequestException as exc:
@@ -382,22 +408,42 @@ def main() -> None:
                             progress.progress((index + 1) / len(PIPELINE_STEPS))
                             if index == 0 and not st.session_state.get("outline_data"):
                                 try:
-                                    st.session_state["outline_data"] = generate_outline(file_id, style, slide_count, False)
+                                    st.session_state["outline_data"] = generate_outline(file_id, style, slide_count, use_ollama)
                                 except requests.RequestException:
                                     pass
                             if index == 2:
                                 st.session_state["current_stage"] = 3
-                                result = generate_presentation(
-                                    file_id=file_id,
-                                    style=style,
-                                    theme=theme,
-                                    slide_count=slide_count,
-                                    use_ollama=use_ollama,
-                                    image_mode=image_mode,
-                                    diagram_mode=diagram_mode,
-                                    include_speaker_notes=include_speaker_notes,
-                                    export_formats=export_formats,
-                                )
+                                if st.session_state.get("outline_data"):
+                                    # Use the preserved outline to maintain user edits
+                                    outline_data = st.session_state["outline_data"]
+                                    try:
+                                        narrative_json = json.loads(outline_data["narrative"])
+                                    except Exception:
+                                        narrative_json = {}
+                                    
+                                    from frontend.api_client import generate_from_outline
+                                    result = generate_from_outline(
+                                        file_id=file_id,
+                                        theme=theme,
+                                        image_mode=image_mode,
+                                        diagram_mode=diagram_mode,
+                                        include_speaker_notes=include_speaker_notes,
+                                        export_formats=export_formats,
+                                        narrative_json=narrative_json,
+                                        doc_summary=outline_data.get("summary", {})
+                                    )
+                                else:
+                                    result = generate_presentation(
+                                        file_id=file_id,
+                                        style=style,
+                                        theme=theme,
+                                        slide_count=slide_count,
+                                        use_ollama=use_ollama,
+                                        image_mode=image_mode,
+                                        diagram_mode=diagram_mode,
+                                        include_speaker_notes=include_speaker_notes,
+                                        export_formats=export_formats,
+                                    )
                                 st.session_state["generation_result"] = result
                                 st.session_state["current_stage"] = 4
                         status_placeholder.success("Presentation ready.")

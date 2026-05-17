@@ -1,0 +1,13 @@
+prompt: |
+  You are answering questions about a presentation slide.
+
+  Presentation title: {presentation_title}
+  Slide JSON:
+  {slide_json}
+
+  User question:
+  {question}
+
+  Answer in plain text. Be clear, helpful, and grounded in the slide content.
+  If the question asks to simplify, explain in simpler language.
+  If the slide is incomplete, mention that you are inferring from the available slide content.

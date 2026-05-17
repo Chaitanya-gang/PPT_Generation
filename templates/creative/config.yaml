@@ -1,0 +1,12 @@
+theme:
+  name: "Creative"
+  bg: [15, 23, 42]
+  card_bg: [30, 41, 59]
+  title: [255, 255, 255]
+  text: [226, 232, 240]
+  accent1: [99, 102, 241]
+  accent2: [244, 63, 94]
+  accent3: [34, 211, 238]
+  accent4: [163, 230, 53]
+  highlight: [251, 191, 36]
+  muted: [148, 163, 184]

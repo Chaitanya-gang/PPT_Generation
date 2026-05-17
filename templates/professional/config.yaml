@@ -1,0 +1,12 @@
+theme:
+  name: "Professional"
+  bg: [13, 2, 33]
+  card_bg: [30, 10, 60]
+  title: [255, 255, 255]
+  text: [221, 214, 254]
+  accent1: [167, 139, 250]
+  accent2: [244, 114, 182]
+  accent3: [45, 212, 191]
+  accent4: [251, 191, 36]
+  highlight: [232, 121, 249]
+  muted: [139, 92, 246]
